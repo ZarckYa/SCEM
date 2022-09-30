@@ -8,7 +8,7 @@ num_log <- c(0,4,2,8)
 num_log
 
 ## Step3: Combine to data into one frame
-animals_info <- data.frame(x, num_log)
+animals_info <- data.frame(animals, num_log)
 animals_info
 
 # Matrics operation
