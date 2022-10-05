@@ -1,0 +1,132 @@
+---
+title: "Week 2 Assignment"
+author: "JUFENG YANG"
+date: "2022-10-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **1. Data Wrangling**
+This part is mainly about data wrangling. Basic concepts of data wrangling can be found in lecture 4.
+
+### prepare: load library and data
+```{R}
+library(tidyverse)
+library(Stat2Data)
+data("Hawks")
+```
+
+### **1.1 Select and filter**
+#### **1.1 (Q1)**
+```{R}
+filter_v1 <- filter(Hawks, Species=='RT' & Weight > 1000)
+select_v1 <- select(filter_v1, Wing, Weight, Tail)
+data1 <- data.frame(select_v1)
+head(data1, 5)
+```
+#### **1.1 (Q2) **
+Waiting for future anwser
+
+
+### **1.2 The arrange function**
+#### **1.2 (Q1)**
+```{R}
+data2 <- arrange(select_v1, Wing)
+head(data2,5)
+```
+
+### **1.3 Join and rename functions
+#### **1.3 (Q1)**
+```{R}
+Species_code <- c("CH", "RT", "SS")
+Species_name <- c("Cooper's", "Red-tailed", "Sharp-shinned")
+Species_details <- data.frame(Species_code, Species_name)
+Species_details
+```
+#### **1.3 (Q2) & (Q2)**
+```{R}
+dataRename <- Species_details %>% rename(Species = Species_code)
+hawksFullName <- left_join(Hawks, dataRename)
+
+data3 <- select(hawksFullName, Species_name, Wing, Weight)
+Rename_v2 <- data3 %>% rename(Species = Species_name)
+head(Rename_v2, 7)
+
+```
+
+### **1.4 The mutate function**
+Suppose that the fictitious “Healthy Hawks Society”1 has proposed a new measure called the “bird BMI”
+which attempts to measure the mass of a hawk standardized by their wing span. The “bird BMI” is equal to
+the weight of the hawk (in grams) divided by their wing span (in millimeters) squared. That is,
+
+\begin{equation*}
+
+Bird_BMI:= 1000 × Weight / Wing-pan^2
+
+\end{equation*}
+
+#### **1.4 (Q1)**
+```{R}
+Hawks_with_BMI <- Hawks %>% mutate(bird_BMI = 1000 * Weight/Wing^2)
+data_4 <- Hawks_with_BMI %>% select(Species, bird_BMI)
+data_5 <- arrange(data_4, desc(bird_BMI))
+head(data_5, 8)
+
+```
+
+
+### **1.5 Summarize and group-by functions**
+#### **1.5 (Q1)**
+
+```{R}
+# Hawks_Fullname <- hawksFullName %>% rename(Species = Species_name)
+
+data6 <- select(hawksFullName, Species_name, Wing, Tail)
+
+renameData6 <- data6 %>% rename(Species = Species_name)
+
+data7 <- renameData6 %>% group_by(Species)
+
+summarizedData <- data7 %>% summarise(num_rows = n(), avg_wing = mean(Wing, na.rm=FALSE), mdn_wing = median(Wing, na.rm = TRUE),t_avg_wing = mean(Wing, na.rm=FALSE, trim = 0.1), max_wt_ratio =max(Wing/Tail, na.rm = TRUE))
+
+summarizedData
+
+```
+
+#### **1.5 (Q2)**
+```{R}
+data8 <- select(hawksFullName, Species_name, Wing, Weight, Culmen, Hallux, Tail, StandardTail, Tarsus, Crop)
+
+renameData8 <- data8 %>% rename(Species = Species_name)
+
+data9 <- renameData8 %>% group_by(Species)
+
+summarizedData9 <- data9 %>% summarise(num_rows = n(), Wing = sum(!complete.cases(Wing)), Weight = sum(!complete.cases(Weight)), Culmen = sum(!complete.cases(Culmen)), Hallux = sum(!complete.cases(Hallux)), Tail = sum(!complete.cases(Tail)), StandardTail = sum(!complete.cases(StandardTail)), Tarsus = sum(!complete.cases(Tarsus)), Crop = sum(!complete.cases(Crop)))
+
+summarizedData9
+
+```
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
