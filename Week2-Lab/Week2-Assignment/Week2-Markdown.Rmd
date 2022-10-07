@@ -1,0 +1,321 @@
+---
+title: "Week 2 Assignment"
+author: "JUFENG_YANG"
+date: "2022-10-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **1. Data Wrangling**
+
+This part is mainly about data wrangling. Basic concepts of data wrangling can be found in lecture 4.
+
+### prepare: load library and data
+
+```{R}
+library(tidyverse)
+library(Stat2Data)
+data("Hawks")
+```
+
+### **1.1 Select and filter**
+
+#### **1.1 (Q1)**
+
+```{R}
+filter_v1 <- filter(Hawks, Species=='RT' & Weight > 1000)
+select_v1 <- select(filter_v1, Wing, Weight, Tail)
+data1 <- data.frame(select_v1)
+head(data1, 5)
+```
+
+#### **1.1 (Q2)** 
+
+Waiting for future anwser
+
+### **1.2 The arrange function**
+
+#### **1.2 (Q1)**
+
+```{R}
+data2 <- arrange(select_v1, Wing)
+head(data2,5)
+```
+
+### \*\*1.3 Join and rename functions
+
+#### **1.3 (Q1)**
+
+```{R}
+Species_code <- c("CH", "RT", "SS")
+Species_name <- c("Cooper's", "Red-tailed", "Sharp-shinned")
+Species_details <- data.frame(Species_code, Species_name)
+Species_details
+```
+
+#### **1.3 (Q2) & (Q2)**
+
+```{R}
+dataRename <- Species_details %>% rename(Species = Species_code)
+hawksFullName <- left_join(Hawks, dataRename)
+
+data3 <- select(hawksFullName, Species_name, Wing, Weight)
+Rename_v2 <- data3 %>% rename(Species = Species_name)
+head(Rename_v2, 7)
+
+```
+
+### **1.4 The mutate function**
+
+Suppose that the fictitious "Healthy Hawks Society"1 has proposed a new measure called the "bird BMI" which attempts to measure the mass of a hawk standardized by their wing span. The "bird BMI" is equal to the weight of the hawk (in grams) divided by their wing span (in millimeters) squared. That is,
+
+```{=tex}
+\begin{equation*}
+
+Bird_BMI:= 1000 × Weight / Wing-pan^2
+
+\end{equation*}
+```
+#### **1.4 (Q1)**
+
+```{R}
+Hawks_with_BMI <- Hawks %>% mutate(bird_BMI = 1000 * Weight/Wing^2)
+data_4 <- Hawks_with_BMI %>% select(Species, bird_BMI)
+data_5 <- arrange(data_4, desc(bird_BMI))
+head(data_5, 8)
+
+```
+
+### **1.5 Summarize and group-by functions**
+
+#### **1.5 (Q1)**
+
+```{R}
+# Hawks_Fullname <- hawksFullName %>% rename(Species = Species_name)
+
+data6 <- select(hawksFullName, Species_name, Wing, Tail)
+
+renameData6 <- data6 %>% rename(Species = Species_name)
+
+data7 <- renameData6 %>% group_by(Species)
+
+summarizedData <- data7 %>% summarise(num_rows = n(), avg_wing = mean(Wing, na.rm=FALSE), mdn_wing = median(Wing, na.rm = TRUE),t_avg_wing = mean(Wing, na.rm=FALSE, trim = 0.1), max_wt_ratio =max(Wing/Tail, na.rm = TRUE))
+
+summarizedData
+
+```
+
+#### **1.5 (Q2) Complex Code**
+
+```{R}
+data8 <- select(hawksFullName, Species_name, Wing, Weight, Culmen, Hallux, Tail, StandardTail, Tarsus, Crop)
+
+renameData8 <- data8 %>% rename(Species = Species_name)
+
+data9 <- renameData8 %>% group_by(Species)
+
+summarizedData9 <- data9 %>% summarise(num_rows = n(), Wing = sum(!complete.cases(Wing)), Weight = sum(!complete.cases(Weight)), Culmen = sum(!complete.cases(Culmen)), Hallux = sum(!complete.cases(Hallux)), Tail = sum(!complete.cases(Tail)), StandardTail = sum(!complete.cases(StandardTail)), Tarsus = sum(!complete.cases(Tarsus)), Crop = sum(!complete.cases(Crop)))
+
+summarizedData9
+
+```
+
+#### **1.5 (Q2) Simple Code with everything & cross**
+
+```{R}
+summarizedData10 <- data9 %>% summarise(across(everything(), ~sum(is.na(.x))))
+summarizedData10
+
+```
+
+# **2. Tidy data and iteration**
+
+### **2.1 Miss data and iteration**
+
+#### **2.1 (Q1)**
+
+```{R}
+
+impute_by_mean <- function(x){
+  mu <- mean(x, na.rm = TRUE) # first compute the mean of x
+  impute_f <- function(z){ # coordinate-wise imputation
+    if(is.na(z)){
+      return(mu) # if z is na replace with mean
+      }else{
+        return(z) # otherwise leave in place
+      }
+    }
+return(map_dbl(x,impute_f)) # apply the map function to impute across vector
+}
+
+T <- c(1, 2, NA, 4)
+impute_by_mean(T)
+```
+
+#### **2.1 (Q2)**
+
+```{R}
+impute_by_median <- function(x){
+  md <- median(x, na.rm = TRUE) # first compute the mean of x
+  impute_f <- function(z){ # coordinate-wise imputation
+    if(is.na(z)){
+      return(md) # if z is na replace with mean
+      }else{
+        return(z) # otherwise leave in place
+      }
+    }
+return(map_dbl(x,impute_f)) # apply the map function to impute across vector
+}
+
+T <- c(1, 2, NA, 4)
+impute_by_median(T)
+```
+
+#### **2.1 (Q3)**
+
+```{R}
+x <- seq(0,10,0.1)
+y <- 5 * x + 1
+data11 <- data.frame(x, y)
+head(data11,5)
+
+
+data12 <- data11 %>% mutate(z = map2_dbl(x,y,sum)) 
+data12 %>% head(5)
+```
+
+#### **2.1 (Q4) create a function called "sometimes_missing"**
+
+```{R}
+sometimes_missing <- function(index, value){
+  if(index %% 5){
+    return(value)
+  }else{
+    return(NA)
+  }
+}
+
+sometimes_missing(14,25)
+sometimes_missing(15,25)
+
+
+# for loop to achive the goal
+y_new <- function(y){
+  for(i in 1:length(y)){
+    y[i] <- sometimes_missing(i,y[i])
+  }
+  return(y)
+}
+df_xy_missing <- data.frame(x,y = y_new(y))
+df_xy_missing %>% head(10)
+
+
+
+# map2_dbl for the goal
+x_new = x * 10 + 1
+y1_new = map2_dbl(x_new,y,sometimes_missing)
+df_xy_missing <- data.frame(x, y = y1_new)
+df_xy_missing %>% head(10)
+
+```
+
+#### **2.1 (Q5)**
+
+```{R}
+
+df_xy_imputed <- data.frame(x,y = impute_by_median(y_new(y)))
+
+df_xy_imputed %>% head(10)
+
+```
+
+### **2.2 Tidy data with pivot function**
+
+#### **2.2 (Q1)**
+```{R}
+
+library(readxl) # load the readxl library
+folder_path <- "D:/TB1 of UoB/SCEM/R project/Week2-Lab/"
+file_name <- "HockeyLeague.xlsx"
+file_path <- paste(folder_path,file_name,sep="") # create the file_path
+wins_data_frame <- read_excel(file_path,sheet="Wins") # read of a sheet from an xl file cnw[2:32]
+
+cnw <- colnames(wins_data_frame)
+wins_tidy <- wins_data_frame %>% pivot_longer(cnw[2:32], names_to = 'Year', values_to = 'value', names_transform = list(Year = as.integer)) %>% separate(value, into = c("Wins", "Total"), sep = "of", convert = TRUE) %>% rename(Team = ...1) 
+wins_tidy %>% head(5)
+
+
+```
+
+#### **2.2 (Q2)**
+
+```{R}
+
+losses_data_frame <- read_excel(file_path,sheet="Losses") # read of a sheet from an xl file
+
+cnl <- colnames(losses_data_frame)
+
+losses_tidy <- losses_data_frame %>% pivot_longer(cnl[2:32], names_to = 'Year', values_to = 'value', names_transform = list(Year = as.integer)) %>% separate(value, into = c("Losses", "Total"), sep = "of", convert = TRUE) %>% rename(Team = ...1)
+
+losses_tidy %>% head(5)
+
+
+```
+
+#### **2.2 (Q3)**
+
+```{R}
+
+hockey_df <- left_join(wins_tidy, losses_tidy)
+hockey_df %>% head(5)
+
+addition_info <- hockey_df %>% summarize(Draws = (Total - Wins - Losses), Wins_rt = (Wins/Total), Losses_rt = (Losses/Total), Draws_rt = (Draws/Total))
+
+hockey_df <- hockey_df %>% mutate(addition_info)
+
+hockey_df %>% head(5)
+
+```
+
+#### **2.2 (Q4)**
+```{R}
+#summary <- hockey_df %>% group_by(Team) %>% summarize(W_md = median(Wins), L_)
+
+summary <- hockey_df %>% group_by(Team) %>% summarize(across(c(W = Wins_rt, L = Losses_rt, D = Draws_rt), list(md = median, mn = mean), .name = "{.col}_{.fn}")) %>% arrange(desc(W_md))
+summary
+
+```
+
+
+
+# **3 Visualisation**
+
+### **Q1**
+
+```{R}
+Wins_of_Ducks <- ggplot(data = wins_tidy %>% filter(Team == 'Ducks'), aes(x = Wins)) + xlab("Wins")
+Wins_of_Ducks + geom_histogram(binwidth = 3) + ylab("Count")
+
+```
+
+### **Q2**
+```{R}
+Wins_of_Ducks + geom_density(adjust = 0.5) + ylab('Density')
+Wins_of_Ducks + geom_density(adjust = 2) + ylab('Density')
+```
+
+### **Q3**
+```{R}
+wins_teams <- wins_tidy %>% pivot_wider(names_from = Team, values_from = Wins) %>% select(-Total)
+wins_teams
+
+point_wins_teams <- ggplot(data = wins_teams, aes(y = Eagles, x = Ducks)) + xlab("Ducks") + ylab("Eagles")
+point_wins_teams + geom_point(size = 3)
+```
+
+
+
+
