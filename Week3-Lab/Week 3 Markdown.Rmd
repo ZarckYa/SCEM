@@ -41,7 +41,7 @@ HawksTail_median
 ```{R}
 
 Hawks_group <- Hawks %>% group_by(Species)
-Hawks_summarize <- Hawks %>% group_by(Species) %>% summarize(across(c(Wing = Wing, Weight = Weight), list(mean = ~mean(.x,na.rm = TRUE), t_mean = ~mean(.x, trim = 0.5, na.rm = TRUE),median = ~median(.x, na.rm = TRUE)), .name = "{.col}_{fn}"))
+Hawks_summarize <- Hawks %>% group_by(Species) %>% summarize(across(c(Wing = Wing, Weight = Weight), list(mean = ~mean(.x,na.rm = TRUE), t_mean = ~mean(.x, trim = 0.5, na.rm = TRUE),median = ~median(.x, na.rm = TRUE)), .name = "{.col}_{.fn}"))
 
 Hawks_summarize
 
@@ -134,18 +134,117 @@ pivot_longer(!num_outliers, names_to = "Estimator", values_to = "Value") %>%
 ggplot(aes(x=num_outliers,color=Estimator, linetype=Estimator,y=Value)) +
 geom_line()+xlab("Number of outliers")
 
-df_means_medians %>%
-pivot_longer(!num_outliers, names_to = "Estimator", values_to = "Value")
+```
 
-df_means_medians %>%
-ggplot(aes(x=num_outliers,color=c("means", "median", "t_means"), linetype=c("means", "median", "t_means"),y=c(means, median, t_means))) +
-geom_line()+xlab("Number of outliers")
+### **1.5 Box plots and outliers**
 
+#### **1.5 (Q1)**
+```{R}
+df_means_medians %>%
+pivot_longer(!num_outliers, names_to = "Estimator", values_to = "Value") %>%
+ggplot(aes(x=num_outliers,color=Estimator, linetype=Estimator,y=Value)) +
+geom_boxplot()+xlab("Number of outliers")
+
+Hawks %>% ggplot(aes(x = Species, y = Weight)) + geom_boxplot()
+
+```
+
+
+#### **1.5 (Q2) quantile and boxplots**
+```{R}
+Hawks_quantile_summarize <- Hawks %>% group_by(Species) %>% summarize(across(Weight, list(quantile025 = ~quantile(.x, 0.25, na.rm = TRUE), quantile050 = ~quantile(.x, 0.5, na.rm = TRUE), quantile075 = ~quantile(.x, 0.75, na.rm = TRUE))))
+
+Hawks_quantile_summarize
+
+```
+
+#### **1.5 (Q3) outliers**
+```{R}
+
+num_outliers <- function(x){
+  count <- 0
+  quantile025 <- quantile(x, 0.25, na.rm=TRUE)
+  quantile075 <- quantile(x, 0.75, na.rm=TRUE)
+  IQR <- quantile075 - quantile025
+  for(i in x){
+    if(!(is.na(i))){
+      if((i < quantile025 - (1.5 * IQR)) | (i > quantile075 + (1.5 * IQR))){
+        count <- count + 1
+      }
+    }
+  }
+  return(count)
+}
+
+num_outliers(c(0, 40, 60, 185))
+```
+
+#### **1.5 (Q4) Outliers by group**
+
+```{R}
+Hawks_outliers_summarize <- Hawks %>% group_by(Species) %>% summarise(across(Weight, ~num_outliers(.x)))
+Hawks_outliers_summarize
+
+```
+
+### **1.6 Covariance and correlation under linear transformations**
+
+#### **1.6 (Q1)**
+```{R}
+Wing_vect <- Hawks$Wing
+
+
+Weight_vect <- Hawks$Weight
+
+Weight_cov_Wing <- cov(Weight_vect, Wing_vect, use = 'complete.obs')
+Weight_cov_Wing
+
+Weight_cor_Wing <- cor(Weight_vect, Wing_vect, use = 'complete.obs')
+Weight_cor_Wing
 ```
 
 
 
 
+# **3 Visualization**
+
+#### **3 (Q1) Density plot**
+```{R}
+
+Hawks %>% ggplot(aes(x = Tail, color = Species, linetype = Species)) +
+geom_density(linetype = "solid")+xlab("Tails(mm)") + ylab("Density")
 
 
+```
 
+#### **3 (Q2) Violin plot**
+```{R}
+Hawks %>% ggplot(aes(x = Tail, y = Species, color=Species, fill = Species, linetype=Species)) +
+geom_violin(linetype = "solid")+xlab("Tails(mm)") + ylab("Density")
+
+```
+
+#### **3 (Q3) Scatter plot**
+```{R}
+
+Hawks %>% ggplot(aes(x = Tail, y = Weight)) + xlab("Tail(mm)") + ylab("Weight(mm)") + geom_point(aes(color=Species, shape = Species))
+
+```
+
+#### **3 (Q4) Trend lines and facet wraps**
+```{R}
+
+Hawks %>% ggplot(aes(x = Tail, y = Weight)) + xlab("Tail(mm)") + ylab("Weight(mm)") + geom_point(aes(color = Species)) + facet_wrap(~Species, scales = "free") + geom_smooth()
+
+```
+
+#### **(Q5) Adding annotations**
+```{R}
+
+Weight_rank_hawks <- Hawks %>% select(Weight, Tail) %>% arrange(desc(Weight))
+Heaviest_hawk <- Weight_rank_hawks %>% head(1)
+Heaviest_hawk
+
+Hawks %>% ggplot(aes(x = Tail, y = Weight)) + xlab("Tail(mm)") + ylab("Weight(mm)") + geom_point(aes(color=Species, shape = Species)) + geom_curve(x = 230, xend = 198, y = 2003, yend = 2030, arrow = arrow(length = unit(0.5, 'cm')), curvature = 0.1) + geom_text(x = 240, y = 1980, label = "The heaviest hawk")
+
+```
