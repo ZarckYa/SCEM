@@ -1,0 +1,151 @@
+---
+title: "Week 3 Markdown"
+author: "JUFENG_YANG"
+date: "2022-10-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **Load library**
+```{R}
+library(tidyverse)
+library(Stat2Data)
+data("Hawks")
+```
+
+# **Exploratory data analysis**
+```{R}
+
+head(Hawks)
+
+```
+
+### 1.1 Location estimation
+#### **1.1 (Q1)**
+```{R}
+
+HawksTail <- Hawks %>% select(Tail)
+HawksTail_vector <- HawksTail %>% unlist() %>% as.vector()
+
+head(HawksTail, 6)
+HawksTail_mean <- mean(HawksTail_vector, na.rm = TRUE)
+HawksTail_median <- median(HawksTail_vector, na.rm = TRUE)
+HawksTail_mean
+HawksTail_median
+```
+
+#### **1.2 (Q2) & (Q3)**
+```{R}
+
+Hawks_group <- Hawks %>% group_by(Species)
+Hawks_summarize <- Hawks %>% group_by(Species) %>% summarize(across(c(Wing = Wing, Weight = Weight), list(mean = ~mean(.x,na.rm = TRUE), t_mean = ~mean(.x, trim = 0.5, na.rm = TRUE),median = ~median(.x, na.rm = TRUE)), .name = "{.col}_{fn}"))
+
+Hawks_summarize
+
+```
+
+### **1.3 Location and dispersion estimators under linear transformations**
+
+#### **1.3 (Q1)**
+```{R}
+New_Hawks <- HawksTail_vector * 2 + 3
+New_Hawks_mean <- mean(New_Hawks) #The new mean of variable with function X = a*Xi + b
+New_Hawks_mean # The mean of origin data
+
+```
+
+#### **1.3 (Q2)**
+```{R}
+var_Hawks <- var(HawksTail_vector)
+var_new_Hawks <- var(New_Hawks)
+
+var_new_Hawks # The new data's variance
+var_Hawks # The origin data variance
+
+sd_Hawks <- sd(HawksTail_vector)
+sd_new_Hawks <- sd(New_Hawks)
+
+sd_new_Hawks # The new data's standard deviation
+sd_Hawks # The origin data's standard deviation
+
+```
+
+
+### **1.4 Robustness of location estimators**
+
+#### **1.4 Prepare**
+```{R}
+hal<-Hawks$Hallux # Extract the vector of hallux lengths
+hal<-hal[!is.na(hal)] # Remove any nans
+
+outlier_val<-100
+num_outliers<-10
+corrupted_hal<-c(hal,rep(outlier_val,times=num_outliers))
+
+mean(hal)
+
+mean(corrupted_hal)
+
+num_outliers_vect <- seq(0,1000)
+means_vect <- c()
+for(num_outliers in num_outliers_vect){
+corrupted_hal <- c(hal,rep(outlier_val,times=num_outliers))
+means_vect <- c(means_vect, mean(corrupted_hal))
+}
+
+means_vect %>% head(100)
+```
+
+#### **1.4 (Q1) Sample median**
+```{R}
+medians_vect <- c()
+
+for(num_outliers in num_outliers_vect) {
+  corrupted_hal <- c(hal, rep(outlier_val, times = num_outliers))
+  medians_vect <- c(medians_vect, median(corrupted_hal))
+}
+medians_vect %>% head(100)
+
+```
+
+
+#### **1.4 (Q2) Sample trimple trimmed mean**
+```{R}
+means_trim_vect <- c()
+for(num_outliers in num_outliers_vect){
+corrupted_hal <- c(hal,rep(outlier_val,times=num_outliers))
+means_trim_vect <- c(means_trim_vect, mean(corrupted_hal, trim = 0.1))
+}
+
+means_trim_vect %>% head(100)
+```
+
+#### **1.4 (Q3) Visualization**
+```{R}
+
+df_means_medians <- data.frame(num_outliers = num_outliers_vect, means = means_vect, t_means = means_trim_vect, median = medians_vect)
+df_means_medians %>% head(40)
+
+df_means_medians %>%
+pivot_longer(!num_outliers, names_to = "Estimator", values_to = "Value") %>%
+ggplot(aes(x=num_outliers,color=Estimator, linetype=Estimator,y=Value)) +
+geom_line()+xlab("Number of outliers")
+
+df_means_medians %>%
+pivot_longer(!num_outliers, names_to = "Estimator", values_to = "Value")
+
+df_means_medians %>%
+ggplot(aes(x=num_outliers,color=c("means", "median", "t_means"), linetype=c("means", "median", "t_means"),y=c(means, median, t_means))) +
+geom_line()+xlab("Number of outliers")
+
+```
+
+
+
+
+
+
+
