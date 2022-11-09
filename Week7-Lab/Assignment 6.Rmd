@@ -1,0 +1,133 @@
+---
+title: "Assignment 6"
+author: "JUFENG_YANG"
+date: "2022-11-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load Packages
+```{R}
+library(tidyverse)
+
+```
+
+# ***1. Continuous random variables and limit laws***
+
+## ***1.1 Simulating data with the uniform distribution***
+
+### **1.1 (Q.1)**
+Show that for any pair of numbers a, b ∈ R with 0 ≤ a ≤ b ≤ 1, we have P(U ∈ [a, b]) = b − a.
+
+$$
+for \qquad P_U = 
+\begin{cases} 
+1 \quad if \ x \in [a, b] \\[2ex]
+0 \quad otherwise
+\end{cases}
+$$ 
+we can image the constant function $P_U = 1 \ (x \in [a, b])$. For the continues variable in [a, b], we have $\int_a^b 1$. The entire continues random variables in $R$ is 1.
+From this case, we have the variable in [a,b], we have probability $\frac{\int_a^b 1}{1} = b-a$.
+
+
+
+### **1.1 (Q.2)**
+Now, let’s consider the discrete random variable X (as defined above) and the case with α = β = 0.25. Generate a sequence of i.i.d. copies X1, X2, · · · , Xn of X as follows:
+```{R}
+set.seed(0)
+n <- 1000
+sample_X <- data.frame(U=runif(n)) %>%
+mutate(X=case_when((0<=U)&(U<0.25)~3,
+                   (0.25<=U)&(U<0.5)~10,
+                   (0.5<=U)&(U<=1)~0)) %>%
+pull(X)
+
+sample_X %>% head(10)
+```
+In the code above, the function runif() can generate a random number in [0,1], so, the range [0, 0.25] in continue variable, the probabilaty is length of range / entire length (0.25 / 1) here, and same case, the length of range (0.25, 0.5] also is 0.25, the probility is 0.25/ 1. Thus $\alpha$ = 0.25, $\beta$ = 0.25, 1-$\alpha$ - $\beta$ = 0.5. 
+
+### **1.1 (Q.3)**
+```{R}
+sample_X_0310 <- function(a, b, n){
+  set.seed(0)
+  sample_x_0310 <- data.frame(U = runif(n)) %>% 
+    mutate(x = case_when((0<=U)&(U<a)~3,
+                         (a<=U)&(U<b+a)~10,
+                         (b+a<=U)&(U<=1)~0)) %>% pull(x)
+  }
+sample_copies <- sample_X_0310(0.25,0.25,100)
+sample_copies
+#sample_copies %>% head(10)
+```
+
+### **1.1 (Q.4)**
+Next take α = 1/2 and β = 1/10, and use your function sample_X_0310() to create a sample of size
+n = 10000 of the form X1, X2, · · · , Xn consisting of independent copies of X. What is the sample average
+of X1, X2, · · · , Xn? How does this compare with the theoretical value of E(X) (We have worked on the
+expression for this expectation in assignment 5 Section 2.1)? Then use your understanding of the law of large
+numbers to explain this behavior.
+```{R}
+sample_copies <- sample_X_0310(0.5, 0.1, 10000)
+Mean_of_sample <- mean(sample_copies)
+expectation <- 3*0.5 + 10*0.1 + 0
+print("The mean of sample is:")
+Mean_of_sample
+print("The E(x) in theory: ")
+expectation
+
+```
+
+### **1.1 (Q.5)**
+Based on the sample generated from the last question, compute the sample variance of X1, X2, · · · , Xn
+and compare it with the population variance Var(X) (again, the expression of Var(X) has been derived in
+Assignment 5).
+
+```{R}
+Variance_of_sample <- var(sample_copies)
+Var <- 9*0.5 + 100*0.1 + 0 - expectation^2
+print("The variance of sample is:")
+Variance_of_sample
+print("The E(x) in theory: ")
+Var
+```
+
+### **1.1 (Q.6)**
+Now take n = 100, α = 1/10 and vary β in increments of 0.01 from 0 to 9/10 (including 9/10). Create a data
+frame that has the following four columns. You can use the functions mutate, map, and map_dbl to help you.
+1. The first column is called beta (contains different β values ranging from 0 to 9/10).
+2. The second column is called sample_X including samples with the corresponding β. More specifically,
+for each value of β (in one of the rows), create a sample of X1, X2, · · · , Xn consisting of independent
+copies of X, by using your function sample_X_0310().
+3. The third column is called samplemean, which contains sample means of the samples.
+4. The last column is called Expectation, which contains numerical values of the population mean E(X)
+(for the corresponding value of β in the same row).
+
+```{R}
+beta = seq(0, 0.9, 0.01)
+
+beta_data <- data.frame(beta) %>% mutate(Samples = map(.x = beta, ~sample_X_0310(0.1, .x, 100))) %>% mutate(Sample_mean = map_dbl(Samples, mean)) %>% mutate(Expectation = map_dbl(.x = beta, ~(0.3 + .x*10)))
+beta_data %>% head(10)
+```
+
+### **1.1 (Q.7)**
+Create a plot of the sample averages and E(X) as a function of β
+```{R}
+beta_data %>% ggplot(aes(x=beta)) + labs(x="beta", y="Value") + 
+  geom_point(aes(y = Sample_mean, color="Sample_mean")) + 
+  geom_point(aes(y = Expectation, color="Expectation"))
+
+
+```
+
+
+
+
+
+
+
+
+
+
