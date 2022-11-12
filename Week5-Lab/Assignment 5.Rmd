@@ -1,0 +1,219 @@
+---
+title: "Assignment 5"
+author: "JUFENG_YANG"
+date: "2022-10-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# *** Prepare: Load packages ***
+Some of the questions in this assignment require the tidyverse package. If it hasn’t been installed on your
+computer, please use install.packages() to install them first.
+To road the tidyverse package:
+
+```{R}
+library(tidyverse)
+```
+
+# ***1. Conditional probability, Bayes rule and independence***
+
+### ***1.1 Bayes theorem***
+
+#### **1.1 Q1**
+
+$$
+\begin{aligned}
+
+P(B) &= P(B|A) * P(A) + P(B|A^c) * P(A^c) \\
+&= P(B|A) * P(A) + (1 - P(B^c|A^c)) * (1 - P(A)) \\
+&= 0.8 * 0.9 + 0.25 * 0.1 \\
+&= 0.745
+
+\end{aligned}
+$$
+
+So, It is easy to get:
+
+$$
+P(A|B) = \frac{P(A)\ P(B|A))}{P(B)} = \frac{0.9*0.8}{0.745} = 0.9665
+$$
+#### **1.2 Q1**
+
+$$
+\begin{aligned}
+&1. \qquad \qquad && P(A|B) = \frac{P(A\cap B)}{P(B)} = \frac{P(A)}{P{B}} \quad Because\  of\  A\subseteq B \\[2ex] 
+&&&if \ P(B\setminus A) = \emptyset \  \Rightarrow \ P(A|B) = 1 \\[7ex]
+
+&2. \qquad \qquad &&P(A|B) = \frac{P(A \cap B)}{P(B)} = \frac{P(\emptyset)}{P(B)} = 0 \\[2ex]
+&&& P(A \cap B) = 0. \quad P(A|B) = 0 \\[7ex]
+
+&3. \qquad \qquad &&P(A|B) = \frac{P(A \cap B)}{P(B)} = \frac{P(B)}{P{B}} = 1 \\[7ex]
+
+&4. \qquad \qquad &&P(A|\Omega) = \frac{P(A \cap \Omega)}{P(\Omega)} = \frac{P(A)}{P(\Omega)} \\[7ex]
+
+&5. \qquad \qquad &&P(A|B \cap C) = \frac{P(A \cap B \cap C)}{P(B \cap C)} \qquad \qquad (1)\\[2ex]
+&&& P(B \cap C) = P(B|C) * P(C) \qquad \qquad (2)\\[2ex]
+&&& Conbine \ two \ eqationa \ (1) \ and \ (2): \\[2ex]
+&&& \Rightarrow P(A \cap B \cap C) = P(A|B \cap C) * P(B|C) * P(C) \\[7ex]
+
+&6. \qquad \qquad &&P(A \cap B \cap C) = P(A|B \cap C) * P(B \cap C) \qquad \qquad (3) \\[2ex]
+&&& P(A \cap B \cap C) = P(B|A \cap C) * P(A \cap C) \qquad \qquad (4) \\[2ex]
+&&& P(B \cap C) = P(B \cap C) * P(C) \qquad \qquad (5) \\[2ex]
+&&& P(A \cap C) = P(A | C) * P(C) \qquad \qquad (6) \\[2ex]
+&&& Conbine\ (3) \ and \ (4): \\[2ex]
+&&& \Rightarrow P(A | B \cap C) * P(B \cap C) = P(B | A \cap C) * P(A \cap C) \qquad \qquad (7) \\[2ex]
+&&& Conbine\ (5) \ ,(6) \ , (7): \\[2ex]
+&&& P(A | B \cap C) = \frac{P(B|A \cap C) * P(A | C)}{P(B|C)}
+\end{aligned}
+$$
+
+#### **1.2 Q2**
+Let windy weather as event A, flight is cancelled as event B.
+Acoording to condition, we can get:
+
+$$
+P(B|A) = 0.3 \\[2ex]
+P(B|A^c) = 0.1 \\[2ex]
+P(A) = 0.2
+$$
+
+We need to get P(B^c), first we can get P(B):
+As follows, 
+
+$$
+\begin{aligned}
+P(B) &= P(B|A) * P(A) \ + \ P(B|A^c)*P(A^c) \\[2ex]
+&= 0.3 * 0.2 + 0.1 * 0.8 \\[2ex]
+&= 0.4
+\end{aligned}
+$$
+### ***1.3 Mutual independence and pair-wise independent***
+#### **1.3 (Q1)**
+According to the question description, and rule 3 before:
+
+$$
+P(A) = P(\{1, 0, 1\}) + P(\{1, 1, 0\}) = \frac{1}{4} + \frac{1}{4} = \frac{1}{2} \\[2ex]
+P(B) = P(\{0, 1, 1\}) + P(\{1, 1, 0\}) = \frac{1}{4} + \frac{1}{4} = \frac{1}{2} \\[2ex]
+P(C) = P(\{0, 1, 1\}) + P(\{1, 0, 1\}) = \frac{1}{4} + \frac{1}{4} = \frac{1}{2} \\[4ex]
+A \cap B = \{1, 1, 0\} \qquad  A \cap C = \{1, 0, 1\} \qquad B \cap C = \{0, 1, 1\} \\[2ex]
+P(A \cap B) = P({1, 1, 0}) = \frac{1}{4} \\[2ex]
+P(A \cap B) = P(A)*P(B) = \frac{1}{2} * \frac{1}{2} = \frac{1}{4}
+$$
+
+Use the same logic, we can get:
+$$
+P(A \cap B) = P(A) * P(B) \\[4ex]
+P(A \cap C) = P(A) * P(C) \\[4ex]
+P(B \cap C) = P(B) * P(C)
+$$
+
+When $A \cap B \cap C = \emptyset \Rightarrow P(A \cap B \cap C) = 0$ So it not joint.
+
+
+### ***1.4 The Monty hall problem(*)***
+In my opinion. The probability of a player picking the car in the initial selection is 1/3 and the probability of picking the goat is 2/3. So when a player picks the car, changing the selection loses the car. When the player picks the goat, changing the choice wins the car. Therefore, when a player changes his choice, there is a 1/3 probability that he will lose and a 2/3 probability that he will win. Therefore I think that changing the choice has a greater chance of winning the race.
+
+
+
+# ***2. Random variables and discrete random variables***
+### **2.1 Expectation and variance**
+
+$$
+\begin{aligned}
+E\big[(X - \overline{X}) * (Y - \overline{Y})\big] &= E\big[XY -X\overline{Y} - Y\overline{X} + \overline{X}\overline{Y}\big]\\[2ex]
+&= E(X)E(Y) - E(X\overline{Y}) - E(Y\overline{X}) + E(\overline{X}\overline{Y})\\[2ex]
+&= \overline{X}\overline{Y} - \overline{X}\overline{Y} - \overline{X}\overline{Y} + \overline{X}\overline{Y}\\[2ex]
+&= 0
+\end{aligned}
+$$
+
+### **2.2 Distributions**
+#### **2.2 (Q1)**
+$$
+\begin{aligned}
+&1. \qquad \qquad P_x = P_x\{x\} = P(X = x) \\[4ex]
+&2. \qquad \qquad E(x) = \sum_{x \subseteq R}x*P(X = x) \\[2ex]
+&3. \qquad \qquad Var(x) = E \big[(x - E(x))^2\big] \\[2ex]
+&4. \qquad \qquad \sigma(x) = \sqrt{Var(x)} 
+\end{aligned}
+$$
+
+#### **2.2 (Q2)**
+$$
+1. \qquad \qquad S \longrightarrow P_x(S) := P(X \in S) = P(\{\omega \in \Omega : X(\omega) \in S\})\  \ for \ any \ S \subseteq R \ in \ a\ well-behaved\ collection\ of\ sunsets\ of\ R \\[7ex]
+
+2. F_x(x) = P(X \leq x)\ for\ x \in R \\ 
+F_x: R \rightarrow[0,1] 
+$$
+
+#### **2.3 (Q3)**
+$$
+\begin{aligned}
+Var(Y) &= Var(X_1 + X_2 + X_3 + \cdots + X_n) \\[4ex]
+&= Var(X_1) + VAr(X_2) + \cdots + Var(V_n) \\[2ex]
+&= \sum_{i = 1}^n \big[E(X_i - E(X_i))^2\big]
+\end{aligned}
+$$
+#### **2.2 (Q4)**
+Step 1: Create a matrix consist of number of samples(number of columns), number of rows corresponding to the $X_i$.
+let n = 3 and generate 50000 samples of $ \{X1, X2, X3\} $
+```{R}
+random_variables <- c(0, 3, 10)
+sample_Xi <- rmultinom(50000, 3, prob = c(0.5, 0.2, 0.3))
+sample_Yi <- random_variables %*% sample_Xi
+sample_Yi <- table(sample_Yi)
+#sample_Yi <- t(sample_Yi)
+
+sample_Yi <- data.frame(sample_Yi)
+
+
+#colnames(sample_Yi) <- 'Y'
+sample_Yi %>% head(10)
+
+```
+
+
+Step 2: Use the ggplot and geom_bar() function to create a bar plot for the samples of Y .
+```{R}
+
+sample_Yi %>% ggplot(aes(x = sample_Yi, y = Freq)) + ylab("Count") + xlab("Y") + geom_bar(stat = 'identity')
+#sample_Yi %>% ggplot(aes(x = sample_Yi, y = Freq)) + ylab("Count") + xlab("Y") + geom_col()
+
+#sample_Yi %>% ggplot(aes(x = Y)) + ylab("Count") + xlab("Y") + geom_bar()
+
+
+```
+
+
+Step 3: Now, increase the values of n by setting n = 20, and repeat Step 1 and Step 2 to create a new bar plot for
+the samples of Y
+
+```{R}
+big_sample_Xi <- rmultinom(50000, 20, prob = c(0.5, 0.2, 0.3))
+big_sample_Yi <- random_variables %*% big_sample_Xi
+big_sample_Yi <- table(big_sample_Yi)
+
+big_sample_Yi <- data.frame(big_sample_Yi)
+big_sample_Yi %>% head(10)
+
+#big_sample_Yi %>% ggplot(aes(x = big_sample_Yi)) + ylab("Count") + xlab("Y") + geom_bar()
+big_sample_Yi %>% ggplot(aes(x = big_sample_Yi, y = Freq)) + ylab("Count") + xlab("Y") + geom_col()
+
+```
+
+Step 4: Next, increase n to 2000 and do the plot again.
+
+```{R}
+bigbig_sample_Xi <- rmultinom(50000, 2000, prob = c(0.5, 0.2, 0.3))
+bigbig_sample_Yi <- random_variables %*% bigbig_sample_Xi
+bigbig_sample_Yi <- table(bigbig_sample_Yi)
+
+bigbig_sample_Yi <- data.frame(bigbig_sample_Yi)
+bigbig_sample_Yi %>% head(10)
+
+bigbig_sample_Yi %>% ggplot(aes(x = bigbig_sample_Yi, y = Freq)) + ylab("Count") + xlab("Y") + geom_col()
+
+```
