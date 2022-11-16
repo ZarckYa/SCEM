@@ -1,0 +1,101 @@
+---
+title: "Assignment 7"
+author: "JUFENG_YANG"
+date: "2022-11-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ***Load packages***
+
+```{R}
+library(tidyverse)
+```
+
+
+# ***1. Maximum likelihood estimates***
+
+## ***1.1 Maximum likelihood estimates for Red tailed hawks***
+
+In this question we will fit a Gaussian model to a Red-Tailed hawk data set. First load the Hawks data set as
+follows:
+
+```{R}
+library(Stat2Data)
+data("Hawks")
+Hawks
+```
+
+
+### **1.1 (Q.1)**
+
+```{R}
+RedTailedDf <- Hawks %>% filter(Species == "RT") %>% select(c("Weight", "Tail", "Wing"))
+
+```
+
+### **1.1 (Q.2)**
+
+
+We model the tail follow the N distribution. And the The maximum likelihood estimates for $\mu_0$ is given by $\mu_{MLE} =\frac{1}{n}\sum_{1}^{n}X_i $and the maximum likelihoodestimate for $\sigma_0^2$ is given by $\sigma^2_{MLE} =\frac{1}{n}\sum_{0}^{n}(Xi − \mu_MLE)^2.$ 
+
+```{R}
+mu_MLE <- RedTailedDf $ Tail %>% mean()
+sigma_2_MLE <- RedTailedDf $ Tail %>% var()
+
+mu_MLE
+sigma_2_MLE
+```
+
+
+### **1.1 (Q.3)**
+Next generate a plot which compares the probability density function for your fitted Gaussian model for the
+tail length of the Red-Tailed hawks with a kernel density plot.
+
+```{R}
+x = Hawks$Tail
+ker_density <- data.frame(x = x, ker = dnorm(x, mean = mu_MLE, sd = sqrt(sigma_2_MLE)))
+density_comparise <- ggplot() + theme_bw() +
+  geom_density(data = RedTailedDf, aes(x = Tail, colour = "Kerner density")) +
+  geom_line(data = ker_density, aes(x = x, y = ker, colour = "MLE density")) +
+  scale_colour_manual(name = "Density", values = c("Kerner density" = "blue", "MLE density" = "red") )
+density_comparise
+```
+
+
+## **1.2 Unbiased estimation of the population variance**
+
+### **1.2 (Q.1)**
+```{R}
+Trails <- 1000
+sample_size <- seq(5, 100, by = 5)
+get_V_U <- function(sample){
+  variance = var(sample) * length(sample) / (length(sample)-1)
+  return(variance)
+}
+MLE_U_Compares_df <- crossing(Trails = seq(0,Trails), Sample_size = sample_size) %>% 
+  mutate(Sample = map(.x = Sample_size, .f = ~rnorm(.x, mean = 1, sd = 3))) %>% 
+  mutate(V_MLE = map_dbl(.x = Sample, .f = var)) %>% 
+  mutate(V_U = map_dbl(.x = Sample, .f = ~get_V_U(.x)))
+
+MLE_U_Compares_df 
+
+mean_MLE_U_Compares_df <- MLE_U_Compares_df %>% group_by(Sample_size) %>% summarise(mean_of_V_MLE = mean(V_MLE), mean_V_U = mean(V_U)) 
+
+#ggplot() + geom_line(data = MLE_U_Compares_df, aes(x = sample_size, y = mean_of_V_MLE, color = "V_MLE"))
+plot_MLE_U <- ggplot() + geom_line(data = mean_MLE_U_Compares_df, aes(x = sample_size, y = mean_of_V_MLE, color = "Mean_of_V_MLE")) +
+  geom_line(data = mean_MLE_U_Compares_df, aes(x = sample_size, y = mean_V_U, color = "Mean_of_V_U"))
+plot_MLE_U
+```
+
+
+
+
+
+
+
+
+
