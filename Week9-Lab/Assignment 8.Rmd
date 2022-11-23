@@ -1,0 +1,62 @@
+---
+title: "Assignment 8"
+author: "JUFENG_YANG"
+date: "2022-11-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ***Load packages***
+
+```{R}
+library(tidyverse)
+```
+
+# ***1. Obstacles to valid scientific inference***
+
+
+# ***2. paired t-test and effect size***
+
+The Barley data set gives the yields of two types of barley - Glabron and Velvet across twelve different fields.
+The data is paired as yields are given for both types of barley across each of the twelve fields.
+
+```{R}
+#library(MASS)
+library(PairedData) # you might need to install the package first
+data("Barley")
+detach('package:PairedData', unload=TRUE)
+detach('package:MASS', unload=TRUE)
+# unload package because it contains another select() function
+head(Barley, 4)
+```
+
+## **2 (Q.1)**
+
+```{R}
+Glabron <- Barley $ Glabron
+Velvet <- Barley $ Velvet
+
+t.test(x = Glabron, y = Velvet, paired = TRUE)
+
+```
+
+We get the p-value is 0.0118. This value is greater than signification level 0.1, so we reject the hypothesis that the difference is 0
+
+## **2 (Q.2)**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
