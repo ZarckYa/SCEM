@@ -1,0 +1,102 @@
+---
+title: "Final Assessment Section A"
+author: "JUFENG_YANG"
+date: "2022-11-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# ***Load Libraries***
+The follow data wranling task will use the tidyverse library, so the follow code will use to load library
+```{R}
+# load library
+library(tidyverse)
+```
+
+
+# **A.1**
+For the whole section, data "inance data 2022" will be used. we need to load the data first.  
+The follow functions will be use:  
+**read.csv()** used to read the csv file.   
+**ncol()** used to calculate the number of column  
+**nrow()** use to calculate teh number of rows   
+
+```{R}
+# To read the csv file from my computer and assign it into a variabe call "data_original"
+data_original <- read.csv("finance_data_2022.csv")
+data_original
+# To read the columns and cows number
+col_num <- ncol(data_original)
+row_num <- nrow(data_original)
+col_num
+row_num
+```
+
+From the output, it demonstrate the column number is 8, and the row number is 1580.
+
+
+# **A.2**
+For this part, the origin data need to be wranling into a new data called "finance_data". The final data frame should be 5 columns. The columns should be looked like: "IFC, IFC_CC, Country, Loan_Guarantee_CC, Date". Please focus on the follow code.   
+The follow function will be used:  
+**select()** use to select the 5 goal columns   
+**rename** use to rename those unfamilar column into i need  
+
+```{R}
+# The first step is to select the 5 goal columns, then rename the 5 columns as the descriptions
+finance_data <- data_original %>% select(c("IFC.Region", 
+                                           "Country", 
+                                           "IFC.Cumulative.Commitments..US..Thousands.", 
+                                           "Loan...Guarantee.participations.Cumulative.Commitments..US..Thousands.", 
+                                           "As.of.Date")) %>% 
+  rename(IFC = "IFC.Region",
+         IFC_CC = "IFC.Cumulative.Commitments..US..Thousands.",
+         Loan_Guarantee_CC = "Loan...Guarantee.participations.Cumulative.Commitments..US..Thousands.",
+         Date = "As.of.Date")
+
+# To check the new finance data
+finance_data
+```
+
+# **A.3**
+This part will use the filter to choose the some columns which satisfied some condition. Here, The condition is IFC_CC $\ge$ 300000 and Loan_Guarantee_CC $\le$ 500000.
+Thus we create a new data frame called data_part1 and arrange the rows of the data frame data part1 such that the values in the column IFC CC are in descending order. The output display the columns "IFC", "IFC_CC", "Loan_Guarantee_CC" and the first 4 rows.  
+The follow functions will be used:  
+**filter()** used to filter some column which unsatisfied those condition  
+**arrange() & desc()** used to reorder the IFC_CC by descending  
+**select()** used to select the 3 goal columns  
+**head()** used to show the first 4 rows  
+
+```{R}
+# Using filter() to select rows which satisfied condition and arrange the data frame ordered by descending
+data_part1 <- finance_data %>% filter((IFC_CC >= 300000) & (Loan_Guarantee_CC <= 500000)) %>% arrange(desc(IFC_CC))
+
+# Just display the columns "IFC", "IFC_CC", "Loan_Guarantee_CC" and the first 4 rows
+data_part1 %>% select(c("IFC", "IFC_CC", "Loan_Guarantee_CC")) %>% head(4)
+```
+# **A.4**
+This part will add a new column called IFC_ratio, which is calculate by IFC_CC / (IFC_CC + Loan_Guarantee_CC). And just display the first 5 rows and the 4 columns “IFC”, “IFC CC”, and “Loan Guarantee CC” and ‘IFC ratio”.
+
+```{R}
+# 
+finance_data <- finance_data %>% mutate(IFC_ratio = map2_dbl(.x = IFC_CC, .y = Loan_Guarantee_CC, .f = ~(.x / (.x + .y))))
+
+finance_data
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
