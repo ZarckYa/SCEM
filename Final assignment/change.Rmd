@@ -1,0 +1,50 @@
+---
+title: "change"
+author: "JUFENG_YANG"
+date: "2022-12-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{R}
+library(tidyverse)
+library(boot)
+```
+
+```{R}
+set.seed(0)
+supermarket_data <- read.csv("supermarket_data_EMATM0061.csv")
+
+compute_lambda_mle <- function(data, indicies, col_name){
+  subsample <- slice(data, indicies) %>% pull(all_of(col_name))
+  return(1 / (mean(subsample) - 300))
+}
+
+stat_boot <- boot(data = supermarket_data, statistic = compute_lambda_mle, col_name = "TimeLength", R = 10000)
+boot.ci(boot.out = stat_boot, type = "basic", conf = 0.95)
+```
+
+```{R}
+set.seed(0)
+
+num_trials <- 5
+min_size <- 100
+max_size <- 5000
+sample_step <- 10
+lambda <- 2
+b <- 0.01
+
+simulation_df <- crossing(trial = seq(num_trials), sample_size = seq(min_size, max_size, sample_step)) %>%
+  mutate(simulation = pmap(.l = (list(trial, sample_size)), .f = ~(rexp(.y, lambda)))) %>%
+  mutate(mean_mn = map_dbl(.x = simulation, .f = mean)) %>%
+  mutate(lambda_mle = map_dbl(.x = mean_mn, .f = ~(1 / (.x)))) %>% 
+  group_by(sample_size) %>%
+  summarise(mean_squre_error_mle = mean((lambda_mle - lambda)^2))
+simulation_df
+
+ggplot() + geom_line(data = simulation_df, aes(x = sample_size, y = mean_squre_error_mle)) + geom_smooth()
+```
+
